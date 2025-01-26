@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add product</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Add item</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Main page</a></li>
+                <li><a href="inventory.html">List of products</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <form id="add-item-form">
+            <label for="sku">SKU* (auto-generated):</label>
+            <input type="text" id="sku" readonly>
+            
+            <label for="name">Name*:</label>
+            <input type="text" id="name" required>
+            
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" min="0" required>
+            
+            <label for="measure">Unit of measure:</label>
+            <input type="text" id="measure">
+            
+            <label for="price"> Price (€):</label>
+            <input type="number" id="price" min="0" step="0.01" required>
+            
+            <label for="total"> Total (auto):</label>
+            <input type="text" id="total" disabled>
+            
+            <button type="submit">Save</button>
+            <button type="reset">Reset</button>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2024 Warehouse Accounting </p>
+    </footer>
+    <script>
+        const generateUniqueSKU = () => {
+            const existingSKUs = JSON.parse(localStorage.getItem("skus")) || [];
+            let newSKU;
+            do {
+                newSKU = Math.floor(10000000 + Math.random() * 90000000).toString();
+            } while (existingSKUs.includes(newSKU));
+            localStorage.setItem("skus", JSON.stringify([...existingSKUs, newSKU]));
+            return newSKU;
+        };
+        const updateTotal = () => {
+            const price = parseFloat(document.getElementById("price").value) || 0;
+            const quantity = parseInt(document.getElementById("quantity").value, 10) || 0;
+            document.getElementById("total").value = price * quantity;
+        };
+    
+        document.addEventListener("DOMContentLoaded", () => {
+            const skuField = document.getElementById("sku");
+            if (skuField) skuField.value = generateUniqueSKU();
+    
+            document.getElementById("price").addEventListener("input", updateTotal);
+            document.getElementById("quantity").addEventListener("input", updateTotal);
+    
+            document.getElementById("add-item-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+    
+                const sku = document.getElementById("sku").value;
+                const name = document.getElementById("name").value.trim();
+                const quantity = parseInt(document.getElementById("quantity").value, 10) || 0;
+                const measure = document.getElementById("measure").value.trim();
+                const price = parseFloat(document.getElementById("price").value) || 0;
+    
+                if (!name || quantity <= 0 || price <= 0) {
+                    alert("Please fill in all required fields correctly.");
+                    return;
+                }
+    
+                const newItem = { sku, name, quantity, measure, price };
+    
+                const items = JSON.parse(localStorage.getItem("inventory")) || [];
+                localStorage.setItem("inventory", JSON.stringify([...items, newItem]));
+    
+                alert("Product added successfully!");
+                document.getElementById("add-item-form").reset();
+                skuField.value = generateUniqueSKU(); 
+            });
+        });
+    </script>
+</body>
+</html>
